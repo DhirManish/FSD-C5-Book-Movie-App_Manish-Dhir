@@ -1,0 +1,2248 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Movies Administration API",
+    "version": "1.0.0",
+    "description": "## API of Movies Administration Services\n\nThis specification describes the endpoints, request/response model of the Movie Administration API. This API provides REST resources to manage movies of Movies application.\n\nThe resources should only be used over HTTPS (SSL) and can be accessed via the following base URL:\n\n```\n  https://localhost:8080/api/v1/\n```\n\n## API usage guidelines\n\nThis section describes general rules and guidelines for using REST based services offered by Movies Application.\n\n  * All resources can only be accessed via HTTPS and a respective HTTP Basic Authentication header is also required.\n  * Movies Application reserves the right to add new parameters without further notice (in request and response).\n  * Movies Application reserves the right to add new error codes without further notice. Movies Application will thereby stick to the HTTP STATUS CODES as defined by W3C.\n  * Movies Application reserves the right to enhance enumerations by new values.\n  * Movies Application reserves the right to increase the \"maxItem\" settings of arrays without further notice.\n  \nEach consumer needs to tolerant about changes to the API as much as possible ([see Tolerant Reader Pattern](http://martinfowler.com/bliki/TolerantReader.html))\n\n## Business definitions\nMovie Administration APIs can only be called by authorized users who has rights with required permissions to manage movies. These APIs can be used to create new movie, modify an existing movie, map artists to the movie, mark movie as release, map theatres and shows.\n## Release Notes \n### 1.0.0\n* Initial version\n"
+  },
+  "host": "localhost:8080",
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "basePath": "/api/v1/admin",
+  "tags": [
+    {
+      "name": "API#004 Movies",
+      "description": "All operations marked with 'API#004 Movies' are relevant to movie Administration use case"
+    }
+  ],
+  "paths": {
+    "/movies": {
+      "post": {
+        "operationId": "createMovie",
+        "tags": [
+          "API#004 Movies"
+        ],
+        "security": [
+          {
+            "Authorization": [
+
+            ]
+          }
+        ],
+        "summary": "Movie Administration - Create new Movie",
+        "description": "API to create new movie in Movies application\n",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/Authorization"
+          },
+          {
+            "in": "body",
+            "name": "CreateMovieRequest",
+            "description": "Request containing new movie details",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateMovieRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "CREATED - Movie has been created successfully in PUBLISHED status",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              },
+              "location": {
+                "type": "string",
+                "description": "Location of the new resource which was created by this request"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/CreateMovieResponse"
+            }
+          },
+          "400": {
+            "description": "BAD REQUEST - server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, mandatory elements are missing)",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED - user has provided wrong credentials",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN - request has not been applied because client application has no permission to perform action",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "422": {
+            "description": "UNPROCESSABLE ENTITY - request was well-formed but server unable to process due to semantic errors",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "INTERNAL SERVER ERROR - server encountered an unexpected condition that prevented it from fulfilling the request.",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "getMovies",
+        "tags": [
+          "API#004 Movies"
+        ],
+        "security": [
+          {
+            "Authorization": [
+
+            ]
+          }
+        ],
+        "summary": "Movie Administration - Get all Movies",
+        "description": "API to get all movies of Movies application\n",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/Authorization"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "type": "integer",
+            "required": false,
+            "description": "query to set the position of the records to be fetched from"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "type": "integer",
+            "required": false,
+            "description": "query to limit the number of records per fetch"
+          },
+          {
+            "in": "query",
+            "name": "title",
+            "type": "string",
+            "required": false,
+            "description": "query to filter the results based on specified movie title"
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "type": "string",
+            "enum": [
+              "PUBLISHED",
+              "RELEASED",
+              "DELETED"
+            ],
+            "required": false,
+            "description": "query to filter the results based on specified status(es) (comma separated)"
+          },
+          {
+            "in": "query",
+            "name": "start_date",
+            "type": "string",
+            "required": false,
+            "description": "query to filter the movies whose release date is equal or after the specified start date (e.g. 2018-07-01)"
+          },
+          {
+            "in": "query",
+            "name": "end_date",
+            "type": "string",
+            "required": false,
+            "description": "query to filter the movies whose release date is equal or before the specified start date (e.g. 2018-07-30)"
+          },
+          {
+            "in": "query",
+            "name": "artist_name",
+            "type": "string",
+            "required": false,
+            "description": "query to filter the results based on specified artist name"
+          },
+          {
+            "in": "query",
+            "name": "genre",
+            "type": "string",
+            "required": false,
+            "description": "query to filter the movies based on specified genre(s) (comma separated)"
+          },
+          {
+            "in": "query",
+            "name": "min_rating",
+            "type": "number",
+            "format": "float",
+            "required": false,
+            "description": "query to filter the movies whose rating is greater than or equal to the specified value (e.g. 3.0)"
+          },
+          {
+            "in": "query",
+            "name": "max_rating",
+            "type": "number",
+            "format": "float",
+            "required": false,
+            "description": "query to filter the movies whose rating is lesser than or equal to the specified value (e.g. 5.0)"
+          },
+          {
+            "in": "query",
+            "name": "sortBy",
+            "type": "string",
+            "enum": [
+              "RATING",
+              "RELEASE_DATE"
+            ],
+            "required": false,
+            "description": "query to sort the results based on specified key(s)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK - Fetched all movies",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/MoviesSummaryResponse"
+            }
+          },
+          "400": {
+            "description": "BAD REQUEST - server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, mandatory elements are missing)",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED - user has provided wrong credentials",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN - request has not been applied because client application has no permission to perform action",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "422": {
+            "description": "UNPROCESSABLE ENTITY - request was well-formed but server unable to process due to semantic errors",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "INTERNAL SERVER ERROR - server encountered an unexpected condition that prevented it from fulfilling the request.",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/movies/{movie_id}": {
+      "get": {
+        "operationId": "getMovie",
+        "tags": [
+          "API#004 Movies"
+        ],
+        "security": [
+          {
+            "Authorization": [
+
+            ]
+          }
+        ],
+        "summary": "Movie Administration - Get an existing Movie",
+        "description": "API to get an existing Movie detalis of Movies application\n",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/MovieId"
+          },
+          {
+            "$ref": "#/parameters/Authorization"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK - Fetched movie details",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/MovieSummaryType"
+            }
+          },
+          "400": {
+            "description": "BAD REQUEST - server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, mandatory elements are missing)",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED - user has provided wrong credentials",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN - request has not been applied because client application has no permission to perform action",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "404": {
+            "description": "NOT FOUND - Movie (resource) does not exist",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL SERVER ERROR - server encountered an unexpected condition that prevented it from fulfilling the request.",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "updateMovie",
+        "tags": [
+          "API#004 Movies"
+        ],
+        "security": [
+          {
+            "Authorization": [
+
+            ]
+          }
+        ],
+        "summary": "Movie Administration - Update an existing Movie",
+        "description": "API to update an existing movie details in Movies application\n",
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/MovieId"
+          },
+          {
+            "$ref": "#/parameters/Authorization"
+          },
+          {
+            "in": "body",
+            "name": "UpdateMovieRequest",
+            "description": "Request containing modified movie details",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UpdateMovieRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK - Movie has been updated successfully",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "400": {
+            "description": "BAD REQUEST - server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, mandatory elements are missing)",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED - user has provided wrong credentials",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN - request has not been applied because client application has no permission to perform action",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "404": {
+            "description": "NOT FOUND - Movie (resource) does not exist",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "422": {
+            "description": "UNPROCESSABLE ENTITY - request was well-formed but server unable to process due to semantic errors",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "INTERNAL SERVER ERROR - server encountered an unexpected condition that prevented it from fulfilling the request.",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "patchMovie",
+        "tags": [
+          "API#004 Movies"
+        ],
+        "security": [
+          {
+            "Authorization": [
+
+            ]
+          }
+        ],
+        "summary": "Movie Administration - Partial update of an existing Movie",
+        "description": "API to partial update of an existing movie in Movies application\n",
+        "parameters": [
+          {
+            "$ref": "#/parameters/MovieId"
+          },
+          {
+            "$ref": "#/parameters/Authorization"
+          },
+          {
+            "in": "body",
+            "name": "MovieOperationsRequest",
+            "description": "Request containing modified status of movie",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/MovieOperationsRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK - Movie has been partially updated",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "400": {
+            "description": "BAD REQUEST - server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, mandatory elements are missing)",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED - user has provided wrong credentials",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN - request has not been applied because client application has no permission to perform action",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "404": {
+            "description": "NOT FOUND - Movie (resource) does not exist",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "422": {
+            "description": "UNPROCESSABLE ENTITY - request was well-formed but server unable to process due to semantic errors",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "INTERNAL SERVER ERROR - server encountered an unexpected condition that prevented it from fulfilling the request.",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteMovie",
+        "tags": [
+          "API#004 Movies"
+        ],
+        "security": [
+          {
+            "Authorization": [
+
+            ]
+          }
+        ],
+        "summary": "Movie Administration - Mark an existing Movie as DELETED",
+        "description": "API to remove an existing Movie\n",
+        "parameters": [
+          {
+            "$ref": "#/parameters/MovieId"
+          },
+          {
+            "$ref": "#/parameters/Authorization"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK - Movie status has been set to DELETED",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "400": {
+            "description": "BAD REQUEST - server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, mandatory elements are missing)",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED - user has provided wrong credentials",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN - request has not been applied because client application has no permission to perform action",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "404": {
+            "description": "NOT FOUND - Movie (resource) does not exist",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL SERVER ERROR - server encountered an unexpected condition that prevented it from fulfilling the request.",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/movies/{movie_id}/artists": {
+      "get": {
+        "operationId": "getMovieArtists",
+        "tags": [
+          "API#004 Movies"
+        ],
+        "security": [
+          {
+            "Authorization": [
+
+            ]
+          }
+        ],
+        "summary": "Movie Administration - List of artists belonging to the Movie",
+        "description": "API to get an existing artists of the Movie\n",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/MovieId"
+          },
+          {
+            "$ref": "#/parameters/Authorization"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK - Fetched list of Movie artists",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/ArtistsSummaryResponse"
+            }
+          },
+          "400": {
+            "description": "BAD REQUEST - server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, mandatory elements are missing)",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED - user has provided wrong credentials",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN - request has not been applied because client application has no permission to perform action",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL SERVER ERROR - server encountered an unexpected condition that prevented it from fulfilling the request.",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/movies/{movie_id}/artists/{artist_id}": {
+      "get": {
+        "operationId": "getMovieArtistDetails",
+        "tags": [
+          "API#004 Movies"
+        ],
+        "security": [
+          {
+            "Authorization": [
+
+            ]
+          }
+        ],
+        "summary": "Movie Administration - Get an existing project details of the Movie",
+        "description": "API to get an existing Projects detalis of the Movie\n",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/MovieId"
+          },
+          {
+            "$ref": "#/parameters/ArtistId"
+          },
+          {
+            "$ref": "#/parameters/Authorization"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK - Fetched artist details",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/ArtistType"
+            }
+          },
+          "400": {
+            "description": "BAD REQUEST - server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, mandatory elements are missing)",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED - user has provided wrong credentials",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN - request has not been applied because client application has no permission to perform action",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "404": {
+            "description": "NOT FOUND - Artist (resource) does not exist",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL SERVER ERROR - server encountered an unexpected condition that prevented it from fulfilling the request.",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/movies/{movie_id}/shows": {
+      "post": {
+        "operationId": "createShow",
+        "tags": [
+          "API#009 Theatres"
+        ],
+        "security": [
+          {
+            "Authorization": [
+
+            ]
+          }
+        ],
+        "summary": "Movie Administration - Add show to the movie",
+        "description": "API to create new show and map it to the movie\n",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/MovieId"
+          },
+          {
+            "$ref": "#/parameters/Authorization"
+          },
+          {
+            "in": "body",
+            "name": "CreateMovieRequest",
+            "description": "Request containing new show details",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateMovieShowRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "CREATED - Show has been added successfully to the theatre",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              },
+              "location": {
+                "type": "string",
+                "description": "Location of the new resource which was created by this request"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/CreateMovieShowResponse"
+            }
+          },
+          "400": {
+            "description": "BAD REQUEST - server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, mandatory elements are missing)",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED - user has provided wrong credentials",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN - request has not been applied because client application has no permission to perform action",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "422": {
+            "description": "UNPROCESSABLE ENTITY - request was well-formed but server unable to process due to semantic errors",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "INTERNAL SERVER ERROR - server encountered an unexpected condition that prevented it from fulfilling the request.",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "getMovieShows",
+        "tags": [
+          "API#009 Theatres"
+        ],
+        "security": [
+          {
+            "Authorization": [
+
+            ]
+          }
+        ],
+        "summary": "Movie Administration - List of shows belonging to the Movie",
+        "description": "API to get an existing shows of the Movie\n",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/MovieId"
+          },
+          {
+            "$ref": "#/parameters/Authorization"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "type": "integer",
+            "required": false,
+            "description": "query to set the position of the records to be fetched from"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "type": "integer",
+            "required": false,
+            "description": "query to limit the number of records per fetch"
+          },
+          {
+            "in": "query",
+            "name": "title",
+            "type": "string",
+            "required": false,
+            "description": "query to filter the results based on specified movie title"
+          },
+          {
+            "in": "query",
+            "name": "genre",
+            "type": "string",
+            "required": false,
+            "description": "query to filter the movies based on specified genre(s) (comma separated)"
+          },
+          {
+            "in": "query",
+            "name": "ticket_availability",
+            "type": "integer",
+            "required": false,
+            "description": "query to filter the movies based on the specified number of ticket availability"
+          },
+          {
+            "in": "query",
+            "name": "city_code",
+            "type": "string",
+            "required": false,
+            "description": "query to filter the results based on specified city code"
+          },
+          {
+            "in": "query",
+            "name": "language",
+            "type": "string",
+            "required": false,
+            "description": "query to filter the results based on specified language"
+          },
+          {
+            "in": "query",
+            "name": "start_time",
+            "type": "string",
+            "required": false,
+            "description": "query to filter the shows whose show timing is equal or after the specified start date time (e.g. 2018-07-01 11:30)"
+          },
+          {
+            "in": "query",
+            "name": "end_time",
+            "type": "string",
+            "required": false,
+            "description": "query to filter the shows whose show timing is equal or before the specified start date time (e.g. 2018-07-01 15:30)"
+          },
+          {
+            "in": "query",
+            "name": "min_price",
+            "type": "number",
+            "format": "double",
+            "required": false,
+            "description": "query to filter the shows whose unit price is greater than or equal to the specified value (e.g. 100.00)"
+          },
+          {
+            "in": "query",
+            "name": "max_price",
+            "type": "number",
+            "format": "double",
+            "required": false,
+            "description": "query to filter the shows whose unit price is lesser than or equal to the specified value (e.g. 300.00)"
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ],
+            "required": false,
+            "description": "query to filter the results based on specified status"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK - fetched list of movie shows",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/MovieShowsSummaryResponse"
+            }
+          },
+          "400": {
+            "description": "BAD REQUEST - server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, mandatory elements are missing)",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED - user has provided wrong credentials",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN - request has not been applied because client application has no permission to perform action",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL SERVER ERROR - server encountered an unexpected condition that prevented it from fulfilling the request.",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/movies/{movie_id}/shows/{show_id}": {
+      "get": {
+        "operationId": "getShowDetails",
+        "tags": [
+          "API#009 Theatres"
+        ],
+        "security": [
+          {
+            "Authorization": [
+
+            ]
+          }
+        ],
+        "summary": "Movie Administration - Get an existing show details",
+        "description": "API to get an existing show details of Movies application\n",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/MovieId"
+          },
+          {
+            "$ref": "#/parameters/ShowId"
+          },
+          {
+            "$ref": "#/parameters/Authorization"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK - fetched show details",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/MovieShowType"
+            }
+          },
+          "400": {
+            "description": "BAD REQUEST - server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, mandatory elements are missing)",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED - user has provided wrong credentials",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN - request has not been applied because client application has no permission to perform action",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "404": {
+            "description": "NOT FOUND - Show (resource) does not exist",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL SERVER ERROR - server encountered an unexpected condition that prevented it from fulfilling the request.",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "updateShow",
+        "tags": [
+          "API#004 Movies"
+        ],
+        "security": [
+          {
+            "Authorization": [
+
+            ]
+          }
+        ],
+        "summary": "Movie Administration - Update an existing Show",
+        "description": "API to update an existing show details in Movies application\n",
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/MovieId"
+          },
+          {
+            "$ref": "#/parameters/ShowId"
+          },
+          {
+            "$ref": "#/parameters/Authorization"
+          },
+          {
+            "in": "body",
+            "name": "UpdateTheatreShowRequest",
+            "description": "Request containing modified show details",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UpdateMovieShowRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK - Show has been updated successfully",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "400": {
+            "description": "BAD REQUEST - server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, mandatory elements are missing)",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED - user has provided wrong credentials",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN - request has not been applied because client application has no permission to perform action",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "404": {
+            "description": "NOT FOUND - Show (resource) does not exist",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "422": {
+            "description": "UNPROCESSABLE ENTITY - request was well-formed but server unable to process due to semantic errors",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "INTERNAL SERVER ERROR - server encountered an unexpected condition that prevented it from fulfilling the request.",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deactivateShow",
+        "tags": [
+          "API#009 Theatres"
+        ],
+        "security": [
+          {
+            "Authorization": [
+
+            ]
+          }
+        ],
+        "summary": "Movie Administration - Mark an existing show as INACTIVE",
+        "description": "API to deactivate an existing Show\n",
+        "parameters": [
+          {
+            "$ref": "#/parameters/MovieId"
+          },
+          {
+            "$ref": "#/parameters/ShowId"
+          },
+          {
+            "$ref": "#/parameters/Authorization"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK - Shows status has been set to INACTIVE",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "400": {
+            "description": "BAD REQUEST - server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, mandatory elements are missing)",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED - user has provided wrong credentials",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN - request has not been applied because client application has no permission to perform action",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "404": {
+            "description": "NOT FOUND - Show (resource) does not exist",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          },
+          "500": {
+            "description": "INTERNAL SERVER ERROR - server encountered an unexpected condition that prevented it from fulfilling the request.",
+            "headers": {
+              "request-id": {
+                "type": "string",
+                "description": "Used as correlation id while tracing for the request in the backend"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "Authorization": {
+      "type": "basic",
+      "description": "Bearer authentication (also called token authentication) is an HTTP authentication scheme that involves security tokens called bearer tokens. The name “Bearer authentication” can be understood as “give access to the bearer of this token.”\nThe bearer token is a cryptic string, usually generated by the server in response to a login request. The client must send this token in the Authorization header when making requests to protected resources:\n``` Authorization: Bearer <token>\n```\nSimilarly to Basic authentication, Bearer authentication should only be used over HTTPS (SSL).\nRead https://jwt.io/introduction/ for more information on JWT standard.\n"
+    }
+  },
+  "parameters": {
+    "Authorization": {
+      "name": "authorization",
+      "type": "string",
+      "in": "header",
+      "required": true,
+      "description": "Mandatory user credentials in bearer http authentication scheme format. Refer to the #/securityDefinitions for more information on this header."
+    },
+    "MovieId": {
+      "name": "movie_id",
+      "type": "string",
+      "format": "uuid",
+      "in": "path",
+      "required": true,
+      "description": "Unique identifier of Movie in a standard UUID format"
+    },
+    "ArtistId": {
+      "name": "artist_id",
+      "type": "string",
+      "format": "uuid",
+      "in": "path",
+      "required": true,
+      "description": "Unique identifier of an Artist in a standard UUID format"
+    },
+    "ShowId": {
+      "name": "show_id",
+      "type": "string",
+      "format": "uuid",
+      "in": "path",
+      "required": true,
+      "description": "Unique identifier of a Show in a standard UUID format"
+    }
+  },
+  "definitions": {
+    "MoviesSummaryResponse": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "integer",
+          "description": "page or position of the fetched movies"
+        },
+        "limit": {
+          "type": "integer",
+          "description": "number of movies fetched per this request"
+        },
+        "total_count": {
+          "type": "integer",
+          "description": "total number of movies in the database"
+        },
+        "movies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/MovieSummaryType"
+          },
+          "description": "List of movies"
+        }
+      },
+      "required": [
+        "page",
+        "limit",
+        "total_count",
+        "movies"
+      ],
+      "example": {
+        "page": 1,
+        "limit": 10,
+        "total_count": 33,
+        "movies": [
+          {
+            "id": "7d174a25-ba31-45a8-85b4-b06ffc9d5f8f",
+            "title": "Sample Movie",
+            "storyline": "This is a sample movie",
+            "genres": [
+              "Drama",
+              "Romantic"
+            ],
+            "duration": 120,
+            "poster_url": "www.samplemovie.com/poster",
+            "trailer_url": "www.samplemovie.com/trailer",
+            "wiki_url": "www.wikipedia.com/samplemovie",
+            "release_date": "2018-07-07",
+            "censor_board_rating": "U",
+            "rating": 4.0,
+            "status": "RELEASED"
+          },
+          {
+            "id": "8d174a25-da31-55a8-85b4-c06ffc9d5f8f",
+            "title": "Another Sample Movie",
+            "storyline": "This is another sample movie",
+            "genres": [
+              "Comedy"
+            ],
+            "duration": 160,
+            "poster_url": "www.anothersamplemovie.com/poster",
+            "trailer_url": "www.anothersamplemovie.com/trailer",
+            "wiki_url": "www.wikipedia.com/anothersamplemovie",
+            "release_date": "2018-08-07",
+            "censor_board_rating": "U",
+            "rating": 3.0,
+            "status": "PUBLISHED"
+          }
+        ]
+      }
+    },
+    "MovieSummaryType": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier of the movie in a standard UUID format"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the movie"
+        },
+        "storyline": {
+          "type": "string",
+          "description": "Storyline of the movie"
+        },
+        "genres": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Genres of the movie"
+        },
+        "duration": {
+          "type": "integer",
+          "description": "Duration (in minutes) of the movie"
+        },
+        "poster_url": {
+          "type": "string",
+          "description": "Poster URL of the movie"
+        },
+        "trailer_url": {
+          "type": "string",
+          "description": "Trailer URL of the movie"
+        },
+        "wiki_url": {
+          "type": "string",
+          "description": "Wiki URL of the movie"
+        },
+        "release_date": {
+          "description": "Release date of the project",
+          "$ref": "#/definitions/FullDateType"
+        },
+        "censor_board_rating": {
+          "$ref": "#/definitions/CensorBoardRatingType"
+        },
+        "rating": {
+          "type": "number",
+          "format": "float",
+          "description": "Rating of the movie"
+        },
+        "status": {
+          "$ref": "#/definitions/MovieStatusType"
+        },
+        "artists": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ArtistType"
+          },
+          "description": "List of artists"
+        }
+      },
+      "required": [
+        "title",
+        "storyline",
+        "genres",
+        "duration",
+        "poster_url",
+        "trailer_url",
+        "release_date",
+        "censor_board_rating",
+        "rating",
+        "status"
+      ],
+      "example": {
+        "title": "Sample Movie",
+        "storyline": "This is a sample movie",
+        "genres": [
+          "Drama",
+          "Romantic"
+        ],
+        "duration": 120,
+        "poster_url": "www.samplemovie.com/poster",
+        "trailer_url": "www.samplemovie.com/trailer",
+        "wiki_url": "www.wikipedia.com/samplemovie",
+        "release_date": "2018-07-07",
+        "censor_board_rating": "U",
+        "rating": 4.0,
+        "status": "RELEASED"
+      }
+    },
+    "MovieOperationsRequest": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/MovieOperationRequest"
+      }
+    },
+    "MovieOperationRequest": {
+      "type": "object",
+      "properties": {
+        "op": {
+          "type": "string",
+          "description": "Type of operation",
+          "enum": [
+            "add",
+            "replace",
+            "remove"
+          ]
+        },
+        "path": {
+          "type": "string",
+          "description": "Resource path whose state to be modified",
+          "enum": [
+            "artist",
+            "status",
+            "release_date"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "description": "New state value to be updated to the resource"
+        }
+      },
+      "example": [
+        {
+          "op": "replace",
+          "path": "status",
+          "value": "RELEASED"
+        },
+        {
+          "op": "add",
+          "path": "artist",
+          "value": "7d174a25-ba31-45a8-85b4-b06ffc9d5f8f"
+        },
+        {
+          "op": "remove",
+          "path": "artist",
+          "value": "8d174a25-ca31-55a8-95b4-c06ffc9d5f8d"
+        }
+      ]
+    },
+    "CreateMovieRequest": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Title of the movie"
+        },
+        "storyline": {
+          "type": "string",
+          "description": "Storyline of the movie"
+        },
+        "genres": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Genres of the movie"
+        },
+        "duration": {
+          "type": "integer",
+          "description": "Duration (in minutes) of the movie"
+        },
+        "poster_url": {
+          "type": "string",
+          "description": "Poster URL of the movie"
+        },
+        "trailer_url": {
+          "type": "string",
+          "description": "Trailer URL of the movie"
+        },
+        "wiki_url": {
+          "type": "string",
+          "description": "Wiki URL of the movie"
+        },
+        "release_date": {
+          "description": "Release date of the project",
+          "$ref": "#/definitions/FullDateType"
+        },
+        "censor_board_rating": {
+          "$ref": "#/definitions/CensorBoardRatingType"
+        },
+        "rating": {
+          "type": "number",
+          "format": "float",
+          "description": "Rating of the movie"
+        },
+        "artists": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Unique identifier of an artist in a standard UUID format generated by API backend"
+        }
+      },
+      "required": [
+        "title",
+        "storyline",
+        "genres",
+        "duration",
+        "poster_url",
+        "trailer_url",
+        "release_date",
+        "censor_board_rating",
+        "rating",
+        "artists"
+      ],
+      "example": {
+        "title": "Sample Movie",
+        "storyline": "This is a sample movie",
+        "genres": [
+          "Drama",
+          "Romantic"
+        ],
+        "duration": 120,
+        "poster_url": "www.samplemovie.com/poster",
+        "trailer_url": "www.samplemovie.com/trailer",
+        "wiki_url": "www.wikipedia.com/samplemovie",
+        "release_date": "2018-07-07",
+        "censor_board_rating": "U",
+        "rating": 4.0,
+        "artists": [
+          "7d174a25-ba31-45a8-85b4-b06ffc9d5f8f",
+          "8d174a25-ca31-55a8-95b4-c06ffc9d5f8d"
+        ]
+      }
+    },
+    "CreateMovieResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier in a standard UUID format generated by API backend"
+        },
+        "status": {
+          "$ref": "#/definitions/MovieStatusType"
+        }
+      },
+      "required": [
+        "id",
+        "status"
+      ],
+      "example": {
+        "id": "7d174a25-ba31-45a8-85b4-b06ffc9d5f8f",
+        "status": "PUBLISHED"
+      }
+    },
+    "UpdateMovieRequest": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Updated title of the movie"
+        },
+        "storyline": {
+          "type": "string",
+          "description": "Updated storyline of the movie"
+        },
+        "genres": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Updated genres of the movie"
+        },
+        "duration": {
+          "type": "integer",
+          "description": "Updated duration (in minutes) of the movie"
+        },
+        "poster_url": {
+          "type": "string",
+          "description": "Updated poster URL of the movie"
+        },
+        "trailer_url": {
+          "type": "string",
+          "description": "Updated trailer URL of the movie"
+        },
+        "wiki_url": {
+          "type": "string",
+          "description": "Updated wiki URL of the movie"
+        },
+        "release_date": {
+          "description": "Updated release date of the project",
+          "$ref": "#/definitions/FullDateType"
+        },
+        "censor_board_rating": {
+          "$ref": "#/definitions/CensorBoardRatingType"
+        },
+        "rating": {
+          "type": "number",
+          "format": "float",
+          "description": "Updated Rating of the movie"
+        },
+        "status": {
+          "$ref": "#/definitions/MovieStatusType"
+        },
+        "artists": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Unique identifier of an artist in a standard UUID format generated by API backend"
+        }
+      },
+      "example": {
+        "title": "Sample Movie Updated",
+        "storyline": "This is a sample movie updated",
+        "genres": [
+          "Drama"
+        ],
+        "duration": 118,
+        "poster_url": "www.samplemovie.com/poster",
+        "trailer_url": "www.samplemovie.com/trailer",
+        "wiki_url": "www.wikipedia.com/samplemovie",
+        "release_date": "2018-08-07",
+        "censor_board_rating": "U",
+        "rating": 3.0,
+        "artists": [
+          "7d174a25-ba31-45a8-85b4-b06ffc9d5f8f",
+          "8d174a25-ca31-55a8-95b4-c06ffc9d5f8d"
+        ]
+      }
+    },
+    "ArtistType": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier of the movie artists in a standard UUID format generated by API backend"
+        },
+        "first_name": {
+          "type": "string",
+          "description": "First name of an artist"
+        },
+        "last_name": {
+          "type": "string",
+          "description": "Last name of an artist"
+        },
+        "role_type": {
+          "type": "string",
+          "description": "Role of an artist",
+          "$ref": "#/definitions/ArtistRoleType"
+        },
+        "profile_description": {
+          "type": "string",
+          "description": "Profile description of an artist"
+        },
+        "profile_url": {
+          "type": "string",
+          "description": "Profile URL of an artist"
+        },
+        "wiki_url": {
+          "type": "string",
+          "description": "Wikipedia URL of an artist"
+        },
+        "status": {
+          "description": "Status of an artist",
+          "$ref": "#/definitions/ArtistStatusType"
+        }
+      }
+    },
+    "ArtistsSummaryResponse": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "integer",
+          "description": "page or position of the fetched artists"
+        },
+        "limit": {
+          "type": "integer",
+          "description": "number of artists fetched per this request"
+        },
+        "total_count": {
+          "type": "integer",
+          "description": "total number of artists in the movie"
+        },
+        "artists": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ArtistType"
+          },
+          "description": "List of artists"
+        }
+      },
+      "required": [
+        "total_count",
+        "artists"
+      ],
+      "example": {
+        "total_count": 8,
+        "artists": [
+          {
+            "id": "7d174a25-ba31-45a8-85b4-b06ffc9d5f8f",
+            "first_name": "Movie",
+            "last_name": "Director",
+            "role_rype": "DIRECTOR",
+            "profile_description": "Director of the movie",
+            "profile_url": "www.artistsprofile.com/director",
+            "wiki_url": "www.wikipedia.com/director"
+          }
+        ]
+      }
+    },
+    "MovieShowsSummaryResponse": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "integer",
+          "description": "page or position of the fetched shows"
+        },
+        "limit": {
+          "type": "integer",
+          "description": "number of shows fetched per this request"
+        },
+        "total_count": {
+          "type": "integer",
+          "description": "total number of shows in the movie"
+        },
+        "shows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/MovieShowType"
+          },
+          "description": "List of shows"
+        }
+      },
+      "required": [
+        "total_count",
+        "shows"
+      ],
+      "example": {
+        "total_count": 8,
+        "shows": [
+          {
+            "id": "7d174a25-ba31-45a8-85b4-b06ffc9d5f8f",
+            "theatre": {
+              "id": "b66c889c-927f-48bc-b130-06d5e5abaa1d",
+              "name": "Inox Cinemas",
+              "postal_address": "Garuda Mall, Koramangala",
+              "city_code": "BLR",
+              "city": "Bengaluru",
+              "status": "ACTIVE"
+            },
+            "show_timing": "2018-08-21T14:30",
+            "language": "ENGLISH",
+            "unit_price": 200.0,
+            "total_seats": 125,
+            "available_seats": 75
+          },
+          {
+            "id": "8d174a25-ba31-45a8-85b4-b06ffc9d5f89",
+            "theatre": {
+              "id": "48076d24-bffa-4e51-bd91-e125e03671e3",
+              "name": "PVR Cinemas",
+              "postal_address": "Forum Mall, Koramangala",
+              "city_code": "BLR",
+              "city": "Bengaluru",
+              "status": "ACTIVE"
+            },
+            "show_timing": "2018-08-21T16:20",
+            "language": "ENGLISH",
+            "unit_price": 250.0,
+            "total_seats": 150,
+            "available_seats": 5
+          }
+        ]
+      }
+    },
+    "MovieShowType": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier of the show in a standard UUID format"
+        },
+        "theatre": {
+          "type": "object",
+          "$ref": "#/definitions/TheatreSummaryType"
+        },
+        "show_timing": {
+          "$ref": "#/definitions/FullDateTimeType",
+          "description": "Show timing in yyyy-MM-ddTHH:MM format"
+        },
+        "language": {
+          "$ref": "#/definitions/LanguageType"
+        },
+        "unit_price": {
+          "$ref": "#/definitions/UnitPriceType"
+        },
+        "total_seats": {
+          "type": "integer",
+          "description": "Total number that this show can host"
+        },
+        "available_seats": {
+          "type": "integer",
+          "description": "Total available seats that this show still has"
+        },
+        "status": {
+          "$ref": "#/definitions/MovieShowStatusType"
+        }
+      }
+    },
+    "CreateMovieShowRequest": {
+      "type": "object",
+      "properties": {
+        "theatre_id": {
+          "type": "string",
+          "description": "Show mapped to this movie show"
+        },
+        "show_timing": {
+          "$ref": "#/definitions/FullDateTimeType",
+          "description": "Show timing in yyyy-MM-ddTHH:MM format"
+        },
+        "language": {
+          "$ref": "#/definitions/LanguageType"
+        },
+        "unit_price": {
+          "$ref": "#/definitions/UnitPriceType"
+        },
+        "total_seats": {
+          "type": "integer",
+          "description": "Total number that this show can host"
+        }
+      },
+      "required": [
+        "theatre_id",
+        "show_timing",
+        "language",
+        "unit_price",
+        "total_seats"
+      ],
+      "example": {
+        "theatre_id": "7d174a25-ba31-45a8-85b4-b06ffc9d5f8f",
+        "show_timing": "2018-08-01T14:30",
+        "language": "ENGLISH",
+        "unit_price": 200.5,
+        "total_seats": 125
+      }
+    },
+    "CreateMovieShowResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier in a standard UUID format generated by API backend"
+        },
+        "status": {
+          "$ref": "#/definitions/MovieShowStatusType"
+        }
+      },
+      "required": [
+        "id",
+        "status"
+      ],
+      "example": {
+        "id": "7d174a25-ba31-45a8-85b4-b06ffc9d5f8f",
+        "status": "ACTIVE"
+      }
+    },
+    "UpdateMovieShowRequest": {
+      "type": "object",
+      "properties": {
+        "theatre_id": {
+          "type": "string",
+          "description": "Updated movie mapped to this show"
+        },
+        "show_timing": {
+          "$ref": "#/definitions/FullDateTimeType",
+          "description": "Updated show timing in yyyy-MM-ddTHH:MM format"
+        },
+        "language": {
+          "$ref": "#/definitions/LanguageType"
+        },
+        "unit_price": {
+          "$ref": "#/definitions/UnitPriceType"
+        },
+        "total_seats": {
+          "type": "integer",
+          "description": "Updated total number that this show can host"
+        }
+      }
+    },
+    "TheatreSummaryType": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier of the theatre in a standard UUID format"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the theatre"
+        },
+        "postal_address": {
+          "type": "string",
+          "description": "Postal address of the theatre"
+        },
+        "city_code": {
+          "type": "string",
+          "description": "City code of the theatre"
+        },
+        "city": {
+          "type": "string",
+          "description": "City of the theatre"
+        },
+        "status": {
+          "$ref": "#/definitions/TheatreStatusType"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "postal_address",
+        "city_code",
+        "city",
+        "status"
+      ],
+      "example": {
+        "id": "8d174a25-da31-55a8-85b4-c06ffc9d5f8f",
+        "name": "Sample Theatre",
+        "postal_address": "Sample Theatre Address",
+        "city_code": "BLR",
+        "city": "Bengaluru",
+        "status": "ACTIVE"
+      }
+    },
+    "FullDateTimeType": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Full date-time format (yyyy-MM-ddTHH:MM)"
+    },
+    "FullDateType": {
+      "type": "string",
+      "format": "full-date",
+      "description": "Full date format (yyyy-MM-dd)"
+    },
+    "MovieStatusType": {
+      "type": "string",
+      "enum": [
+        "PUBLISHED",
+        "RELEASED",
+        "DELETED"
+      ],
+      "description": "Status of the movie"
+    },
+    "TheatreStatusType": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "INACTIVE"
+      ],
+      "description": "Status of the theatre"
+    },
+    "ArtistRoleType": {
+      "type": "string",
+      "enum": [
+        "DIRECTOR",
+        "PRODUCER",
+        "ACTOR",
+        "CINEMATOGRAPHER",
+        "MUSICIAN",
+        "STUNTMAN"
+      ],
+      "description": "Status of the task"
+    },
+    "ArtistStatusType": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "INACTIVE"
+      ],
+      "description": "Status of an artist"
+    },
+    "CensorBoardRatingType": {
+      "type": "string",
+      "enum": [
+        "U",
+        "A",
+        "UA"
+      ],
+      "description": "Censor board rating"
+    },
+    "SortByType": {
+      "type": "string",
+      "enum": [
+        "RATING",
+        "RELEASE_DATE"
+      ],
+      "description": "Sort by fields"
+    },
+    "MovieShowStatusType": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "INACTIVE"
+      ],
+      "description": "Status of the show"
+    },
+    "LanguageType": {
+      "type": "string",
+      "enum": [
+        "ENGLISH",
+        "HINDI",
+        "KANNADA",
+        "MARATHI",
+        "TELUGU",
+        "TAMIL",
+        "MALAYALAM",
+        "BENGALI",
+        "PUNJABI"
+      ],
+      "description": "Language of the movie to be mapped to this show"
+    },
+    "UnitPriceType": {
+      "type": "number",
+      "format": "double",
+      "description": "Unit price of the movie (for e.g. 200.00)"
+    },
+    "ErrorResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "Application specific standard error code"
+        },
+        "message": {
+          "type": "string",
+          "description": "Error message stating the reason"
+        },
+        "root_cause": {
+          "type": "string",
+          "description": "Root cause of the Error"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "example": {
+        "code": "MVI-001",
+        "message": "Movie with identifier does not exist"
+      }
+    }
+  }
+}

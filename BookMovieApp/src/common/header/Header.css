@@ -1,0 +1,50 @@
+.app-header {
+  background-color: #222;
+  height: 36px;
+  padding: 8px 32px 8px 16px;
+}
+
+.login-button {
+  float: right;
+}
+
+@-webkit-keyframes app-logo-spin {
+  to { -webkit-transform: rotateY(360deg); }
+}
+@keyframes app-logo-spin {
+  to { transform: rotateY(360deg); }          
+}
+@-moz-keyframes app-logo-spin{
+  to { -moz-transform: rotateY(360deg); }
+}
+
+.app-logo {
+  float: left;
+  height: 35px;
+  background: #ff7f7f;
+
+  animation: app-logo-spin infinite 8s linear;
+  -webkit-animation: app-logo-spin 8s infinite linear;
+  -moz-animation: app-logo-spin 8s infinite linear;  
+}
+
+.bookshow-button {
+  float: right;
+  margin-right: 8px;
+}
+
+.tabs {
+  margin-bottom: 20px;
+}
+
+.dispNone {
+  display: none;
+}
+
+.dispBlock {
+  display: block;
+}
+
+.red {
+  color: red;
+}

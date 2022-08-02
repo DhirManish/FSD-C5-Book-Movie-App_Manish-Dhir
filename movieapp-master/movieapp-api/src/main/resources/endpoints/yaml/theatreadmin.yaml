@@ -1,0 +1,1194 @@
+swagger: '2.0'
+info:
+  title: Theatres Administration API
+  version: 1.0.0
+  description: >
+    ## API of Theatres Administration Services
+
+
+    This specification describes the endpoints, request/response model of the Movie Administration API.
+    This API provides REST resources to manage movies of Movies application.
+
+
+    The resources should only be used over HTTPS (SSL) and can be accessed via the following base URL:
+
+
+    ```
+      http://localhost:8080/api/v1/
+    ```
+
+
+    ## API usage guidelines
+
+
+    This section describes general rules and guidelines for using REST based
+    services offered by Movies Application.
+
+      * All resources can only be accessed via HTTPS and a respective HTTP Basic Authentication header is also required.
+      * Movies Application reserves the right to add new parameters without further notice (in request and response).
+      * Movies Application reserves the right to add new error codes without further notice. Movies Application will thereby stick to the HTTP STATUS CODES as defined by W3C.
+      * Movies Application reserves the right to enhance enumerations by new values.
+      * Movies Application reserves the right to increase the "maxItem" settings of arrays without further notice.
+      
+    Each consumer needs to tolerant about changes to the API as much as possible ([see Tolerant Reader Pattern](http://martinfowler.com/bliki/TolerantReader.html))
+
+
+    ## Business definitions
+
+    Theatre Administration APIs can only be called by authorized users who has rights with required permissions to manage movies. These APIs can be used to create new theatre,
+    modify/delete an existing theatre, add/modify/delete shows.
+
+    ## Release Notes 
+
+    ### 1.0.0
+
+    * Initial version
+
+host: localhost:8080
+schemes:
+  - http
+  - https
+basePath: /api/v1/admin
+tags:
+  - name: 'API#009 Theatres'
+    description: >-
+      All operations marked with 'API#009 Theatres' are relevant to Theatre Administration use case
+
+paths:
+  /theatres:
+    post:
+      operationId: createTheatre
+      tags:
+        - 'API#009 Theatres'
+      security:
+        - Authorization: []
+      summary: Theatre Administration - Create new Theatre
+      description: >
+        API to create new theatre in Movies application
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/Authorization'
+        - in: body
+          name: CreateMovieRequest
+          description: Request containing new theatre details
+          required: true
+          schema:
+            $ref: '#/definitions/CreateTheatreRequest'
+      responses:
+        '201':
+          description: CREATED - Theatre has been created successfully in PUBLISHED status
+          headers:
+            request-id:
+              type: string
+              description: Used as correlation id while tracing for the request in the backend
+            location:
+              type: string
+              description: Location of the new resource which was created by this request
+          schema:
+            $ref: '#/definitions/CreateTheatreResponse'
+        '400':
+          description: >-
+            BAD REQUEST - server cannot or will not process the request due to
+            something that is perceived to be a client error (e.g., malformed
+            request syntax, mandatory elements are missing)
+          headers:
+            request-id:
+              type: string
+              description: Used as correlation id while tracing for the request in the backend
+        '401':
+          description: UNAUTHORIZED - user has provided wrong credentials
+          headers:
+            request-id:
+              type: string
+              description: Used as correlation id while tracing for the request in the backend
+        '403':
+          description: >-
+            FORBIDDEN - request has not been applied because client application
+            has no permission to perform action
+          headers:
+            request-id:
+              type: string
+              description: Used as correlation id while tracing for the request in the backend
+        '422':
+          description: >-
+            UNPROCESSABLE ENTITY - request was well-formed but server unable to process due to semantic errors
+          headers:
+            request-id:
+              type: string
+              description: Used as correlation id while tracing for the request in the backend
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: >-
+            INTERNAL SERVER ERROR - server encountered an unexpected condition
+            that prevented it from fulfilling the request.
+          headers:
+            request-id:
+              type: string
+              description: Used as correlation id while tracing for the request in the backend
+
+    get:
+       operationId: getTheatres
+       tags:
+         - 'API#009 Theatres'
+       security:
+         - Authorization: []
+       summary: Theatre Administration - Get all Theatres
+       description: >
+         API to get all movies of Movies application
+       produces:
+         - application/json
+       parameters:
+         - $ref: '#/parameters/Authorization'
+         - in: query
+           name: page
+           type: integer
+           required: false
+           description: query to set the position of the records to be fetched from
+         - in: query
+           name: limit
+           type: integer
+           required: false
+           description: query to limit the number of records per fetch
+         - in: query
+           name: status
+           type: string
+           enum: [ACTIVE, INACTIVE]
+           required: false
+           description: query to filter the results based on specified status(es) (comma separated)
+       responses:
+         '200':
+           description: OK - Fetched all theatres
+           headers:
+             request-id:
+               type: string
+               description: Used as correlation id while tracing for the request in the backend
+           schema:
+             $ref: '#/definitions/TheatresSummaryResponse'
+         '400':
+            description: >-
+              BAD REQUEST - server cannot or will not process the request due to something that is perceived to be a
+              client error (e.g., malformed request syntax, mandatory elements are missing)
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+         '401':
+            description: UNAUTHORIZED - user has provided wrong credentials
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+         '403':
+            description: >-
+              FORBIDDEN - request has not been applied because client application has no permission to perform action
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+         '422':
+            description: >-
+              UNPROCESSABLE ENTITY - request was well-formed but server unable to process due to semantic errors
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+            schema:
+              $ref: '#/definitions/ErrorResponse'
+         '500':
+            description: >-
+              INTERNAL SERVER ERROR - server encountered an unexpected condition that prevented it from fulfilling the request.
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+
+  /theatres/{theatre_id}:
+     get:
+        operationId: getTheatre
+        tags:
+          - 'API#009 Theatres'
+        security:
+          - Authorization: []
+        summary: Theatre Administration - Get an existing Theatre
+        description: >
+            API to get an existing theatre details of Movies application
+        produces:
+          - application/json
+        parameters:
+          - $ref: '#/parameters/TheatreId'
+          - $ref: '#/parameters/Authorization'
+        responses:
+         '200':
+           description: OK - Fetched theatre details
+           headers:
+             request-id:
+               type: string
+               description: Used as correlation id while tracing for the request in the backend
+           schema:
+             $ref: '#/definitions/TheatreSummaryType'
+         '400':
+           description: >-
+             BAD REQUEST - server cannot or will not process the request due to
+             something that is perceived to be a client error (e.g., malformed
+             request syntax, mandatory elements are missing)
+           headers:
+             request-id:
+               type: string
+               description: Used as correlation id while tracing for the request in the backend
+         '401':
+           description: UNAUTHORIZED - user has provided wrong credentials
+           headers:
+             request-id:
+               type: string
+               description: Used as correlation id while tracing for the request in the backend
+         '403':
+           description: >-
+             FORBIDDEN - request has not been applied because client application
+             has no permission to perform action
+           headers:
+             request-id:
+               type: string
+               description: Used as correlation id while tracing for the request in the backend
+         '404':
+           description: >-
+             NOT FOUND - Theatre (resource) does not exist
+           headers:
+             request-id:
+               type: string
+               description: Used as correlation id while tracing for the request in the backend
+         '500':
+           description: >-
+             INTERNAL SERVER ERROR - server encountered an unexpected condition
+             that prevented it from fulfilling the request.
+           headers:
+             request-id:
+               type: string
+               description: Used as correlation id while tracing for the request in the backend
+
+     put:
+        operationId: updateTheatre
+        tags:
+          - 'API#009 Theatres'
+        security:
+          - Authorization: []
+        summary: Theatre Administration - Update an existing Theatre
+        description: >
+            API to update an existing theatre details in Movies application
+        consumes:
+          - application/json
+        parameters:
+          - $ref: '#/parameters/TheatreId'
+          - $ref: '#/parameters/Authorization'
+          - in: body
+            name: UpdateTheatreRequest
+            description: Request containing modified theatre details
+            required: true
+            schema:
+              $ref: '#/definitions/UpdateTheatreRequest'
+        responses:
+          '200':
+            description: OK - Theatre has been updated successfully
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+          '400':
+            description: >-
+              BAD REQUEST - server cannot or will not process the request due to
+              something that is perceived to be a client error (e.g., malformed
+              request syntax, mandatory elements are missing)
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+          '401':
+            description: UNAUTHORIZED - user has provided wrong credentials
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+          '403':
+            description: >-
+              FORBIDDEN - request has not been applied because client application
+              has no permission to perform action
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+          '404':
+            description: >-
+              NOT FOUND - Theatre (resource) does not exist
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+          '422':
+            description: >-
+              UNPROCESSABLE ENTITY - request was well-formed but server unable to process due to semantic errors
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+            schema:
+              $ref: '#/definitions/ErrorResponse'
+          '500':
+            description: >-
+              INTERNAL SERVER ERROR - server encountered an unexpected condition
+              that prevented it from fulfilling the request.
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+
+     delete:
+        operationId: deleteTheatre
+        tags:
+          - 'API#009 Theatres'
+        security:
+          - Authorization: []
+        summary: Theatre Administration - Mark an existing Theatre as INACTIVE
+        description: >
+            API to deactivate an existing Theatre
+        parameters:
+          - $ref: '#/parameters/TheatreId'
+          - $ref: '#/parameters/Authorization'
+        responses:
+          '200':
+            description: OK - Theatre status has been set to INACTIVE
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+          '400':
+            description: >-
+              BAD REQUEST - server cannot or will not process the request due to
+              something that is perceived to be a client error (e.g., malformed
+              request syntax, mandatory elements are missing)
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+          '401':
+            description: UNAUTHORIZED - user has provided wrong credentials
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+          '403':
+            description: >-
+              FORBIDDEN - request has not been applied because client application
+              has no permission to perform action
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+          '404':
+            description: >-
+              NOT FOUND - Theatre (resource) does not exist
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+          '500':
+            description: >-
+              INTERNAL SERVER ERROR - server encountered an unexpected condition
+              that prevented it from fulfilling the request.
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+
+  /theatres/{theatre_id}/shows:
+
+    post:
+      operationId: createShow
+      tags:
+        - 'API#009 Theatres'
+      security:
+        - Authorization: []
+      summary: Theatre Administration - Add show to the theatre
+      description: >
+        API to create new show and map it to the theatre
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/TheatreId'
+        - $ref: '#/parameters/Authorization'
+        - in: body
+          name: CreateMovieRequest
+          description: Request containing new theatre details
+          required: true
+          schema:
+            $ref: '#/definitions/CreateTheatreShowRequest'
+      responses:
+        '201':
+          description: CREATED - Show has been added successfully to the theatre
+          headers:
+            request-id:
+              type: string
+              description: Used as correlation id while tracing for the request in the backend
+            location:
+              type: string
+              description: Location of the new resource which was created by this request
+          schema:
+            $ref: '#/definitions/CreateTheatreShowResponse'
+        '400':
+          description: >-
+            BAD REQUEST - server cannot or will not process the request due to
+            something that is perceived to be a client error (e.g., malformed
+            request syntax, mandatory elements are missing)
+          headers:
+            request-id:
+              type: string
+              description: Used as correlation id while tracing for the request in the backend
+        '401':
+          description: UNAUTHORIZED - user has provided wrong credentials
+          headers:
+            request-id:
+              type: string
+              description: Used as correlation id while tracing for the request in the backend
+        '403':
+          description: >-
+            FORBIDDEN - request has not been applied because client application
+            has no permission to perform action
+          headers:
+            request-id:
+              type: string
+              description: Used as correlation id while tracing for the request in the backend
+        '422':
+          description: >-
+            UNPROCESSABLE ENTITY - request was well-formed but server unable to process due to semantic errors
+          headers:
+            request-id:
+              type: string
+              description: Used as correlation id while tracing for the request in the backend
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: >-
+            INTERNAL SERVER ERROR - server encountered an unexpected condition
+            that prevented it from fulfilling the request.
+          headers:
+            request-id:
+              type: string
+              description: Used as correlation id while tracing for the request in the backend
+
+    get:
+      operationId: getTheatreShows
+      tags:
+        - 'API#009 Theatres'
+      security:
+        - Authorization: []
+      summary: Theatre Administration - List of shows belonging to the Theatre
+      description: >
+          API to get an existing shows of the Theatre
+      produces:
+        - application/json
+      parameters:
+       - $ref: '#/parameters/TheatreId'
+       - $ref: '#/parameters/Authorization'
+      responses:
+       '200':
+         description: OK - fetched list of theatres
+         headers:
+           request-id:
+             type: string
+             description: Used as correlation id while tracing for the request in the backend
+         schema:
+           $ref: '#/definitions/TheatreShowsSummaryResponse'
+       '400':
+         description: >-
+           BAD REQUEST - server cannot or will not process the request due to
+           something that is perceived to be a client error (e.g., malformed
+           request syntax, mandatory elements are missing)
+         headers:
+           request-id:
+             type: string
+             description: Used as correlation id while tracing for the request in the backend
+       '401':
+         description: UNAUTHORIZED - user has provided wrong credentials
+         headers:
+           request-id:
+             type: string
+             description: Used as correlation id while tracing for the request in the backend
+       '403':
+         description: >-
+           FORBIDDEN - request has not been applied because client application
+           has no permission to perform action
+         headers:
+           request-id:
+             type: string
+             description: Used as correlation id while tracing for the request in the backend
+       '500':
+         description: >-
+           INTERNAL SERVER ERROR - server encountered an unexpected condition
+           that prevented it from fulfilling the request.
+         headers:
+           request-id:
+             type: string
+             description: Used as correlation id while tracing for the request in the backend
+
+  /theatres/{theatre_id}/shows/{show_id}:
+
+     get:
+        operationId: getShowDetails
+        tags:
+          - 'API#009 Theatres'
+        security:
+          - Authorization: []
+        summary: Theatre Administration - Get an existing show details
+        description: >
+            API to get an existing show details of Movies application
+        produces:
+          - application/json
+        parameters:
+          - $ref: '#/parameters/TheatreId'
+          - $ref: '#/parameters/ShowId'
+          - $ref: '#/parameters/Authorization'
+        responses:
+         '200':
+           description: OK - fetched show details
+           headers:
+             request-id:
+               type: string
+               description: Used as correlation id while tracing for the request in the backend
+           schema:
+             $ref: '#/definitions/ShowType'
+         '400':
+           description: >-
+             BAD REQUEST - server cannot or will not process the request due to
+             something that is perceived to be a client error (e.g., malformed
+             request syntax, mandatory elements are missing)
+           headers:
+             request-id:
+               type: string
+               description: Used as correlation id while tracing for the request in the backend
+         '401':
+           description: UNAUTHORIZED - user has provided wrong credentials
+           headers:
+             request-id:
+               type: string
+               description: Used as correlation id while tracing for the request in the backend
+         '403':
+           description: >-
+             FORBIDDEN - request has not been applied because client application
+             has no permission to perform action
+           headers:
+             request-id:
+               type: string
+               description: Used as correlation id while tracing for the request in the backend
+         '404':
+           description: >-
+             NOT FOUND - Show (resource) does not exist
+           headers:
+             request-id:
+               type: string
+               description: Used as correlation id while tracing for the request in the backend
+         '500':
+           description: >-
+             INTERNAL SERVER ERROR - server encountered an unexpected condition
+             that prevented it from fulfilling the request.
+           headers:
+             request-id:
+               type: string
+               description: Used as correlation id while tracing for the request in the backend
+
+     put:
+        operationId: updateShow
+        tags:
+          - 'API#004 Movies'
+        security:
+          - Authorization: []
+        summary: Movie Administration - Update an existing Show
+        description: >
+            API to update an existing show details in Movies application
+        consumes:
+          - application/json
+        parameters:
+          - $ref: '#/parameters/TheatreId'
+          - $ref: '#/parameters/ShowId'
+          - $ref: '#/parameters/Authorization'
+          - in: body
+            name: UpdateTheatreShowRequest
+            description: Request containing modified show details
+            required: true
+            schema:
+              $ref: '#/definitions/UpdateTheatreShowRequest'
+        responses:
+          '200':
+            description: OK - Show has been updated successfully
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+          '400':
+            description: >-
+              BAD REQUEST - server cannot or will not process the request due to
+              something that is perceived to be a client error (e.g., malformed
+              request syntax, mandatory elements are missing)
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+          '401':
+            description: UNAUTHORIZED - user has provided wrong credentials
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+          '403':
+            description: >-
+              FORBIDDEN - request has not been applied because client application
+              has no permission to perform action
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+          '404':
+            description: >-
+              NOT FOUND - Show (resource) does not exist
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+          '422':
+            description: >-
+              UNPROCESSABLE ENTITY - request was well-formed but server unable to process due to semantic errors
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+            schema:
+              $ref: '#/definitions/ErrorResponse'
+          '500':
+            description: >-
+              INTERNAL SERVER ERROR - server encountered an unexpected condition
+              that prevented it from fulfilling the request.
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+
+     delete:
+        operationId: deactivateShow
+        tags:
+          - 'API#009 Theatres'
+        security:
+          - Authorization: []
+        summary: Theatre Administration - Mark an existing show as INACTIVE
+        description: >
+            API to deactivate an existing Show
+        parameters:
+          - $ref: '#/parameters/TheatreId'
+          - $ref: '#/parameters/ShowId'
+          - $ref: '#/parameters/Authorization'
+        responses:
+          '200':
+            description: OK - Shows status has been set to INACTIVE
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+          '400':
+            description: >-
+              BAD REQUEST - server cannot or will not process the request due to
+              something that is perceived to be a client error (e.g., malformed
+              request syntax, mandatory elements are missing)
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+          '401':
+            description: UNAUTHORIZED - user has provided wrong credentials
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+          '403':
+            description: >-
+              FORBIDDEN - request has not been applied because client application
+              has no permission to perform action
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+          '404':
+            description: >-
+              NOT FOUND - Show (resource) does not exist
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+          '500':
+            description: >-
+              INTERNAL SERVER ERROR - server encountered an unexpected condition
+              that prevented it from fulfilling the request.
+            headers:
+              request-id:
+                type: string
+                description: Used as correlation id while tracing for the request in the backend
+
+securityDefinitions:
+  Authorization:
+    type: basic
+    description: >
+      Bearer authentication (also called token authentication) is an HTTP authentication scheme that involves
+      security tokens called bearer tokens. The name “Bearer authentication” can be understood as “give access
+      to the bearer of this token.”
+
+      The bearer token is a cryptic string, usually generated by the server in response to a login request. The
+      client must send this token in the Authorization header when making requests to protected resources:
+
+      ```
+      Authorization: Bearer <token>
+
+      ```
+
+      Similarly to Basic authentication, Bearer authentication should only be used over HTTPS (SSL).
+
+      Read https://jwt.io/introduction/ for more information on JWT standard.
+
+parameters:
+  Authorization:
+    name: authorization
+    type: string
+    in: header
+    required: true
+    description: >-
+      Mandatory user credentials in bearer http authentication scheme format. Refer to the #/securityDefinitions
+      for more information on this header.
+  TheatreId:
+    name: theatre_id
+    type: string
+    format: uuid
+    in: path
+    required: true
+    description: >-
+      Unique identifier of Theatre in a standard UUID format
+  ShowId:
+    name: show_id
+    type: string
+    format: uuid
+    in: path
+    required: true
+    description: >-
+      Unique identifier of a Show in a standard UUID format
+
+definitions:
+
+  TheatresSummaryResponse:
+    type: object
+    properties:
+      page:
+        type: integer
+        description: page or position of the fetched theatres
+      limit:
+        type: integer
+        description: number of theatres fetched per this request
+      total_count:
+        type: integer
+        description: total number of theatres in the database
+      theatres:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/TheatreSummaryType'
+        description: List of theatres
+    required:
+      - page
+      - limit
+      - total_count
+      - theatres
+    example:
+      page: 1
+      limit: 10
+      total_count: 33
+      theatres:
+        - id: 7d174a25-ba31-45a8-85b4-b06ffc9d5f8f
+          name: Sample Theatre
+          postal_address: Sample Theatre Address
+          city_code: BLR
+          city: Bengaluru
+          status: ACTIVE
+
+        - id: 8d174a25-da31-55a8-85b4-c06ffc9d5f8f
+          name: Another Sample Theatre
+          postal_address: Another Sample Theatre Address
+          city_code: BLR
+          city: Bengaluru
+          status: INACTIVE
+
+  TheatreSummaryType:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+        description: Unique identifier of the theatre in a standard UUID format
+      name:
+        type: string
+        description: Name of the theatre
+      postal_address:
+        type: string
+        description: Postal address of the theatre
+      city_code:
+        type: string
+        description: City code of the theatre
+      city:
+        type: string
+        description: City of the theatre
+      status:
+        $ref: '#/definitions/TheatreStatusType'
+    required:
+      - id
+      - name
+      - postal_address
+      - city_code
+      - city
+      - status
+    example:
+      id: 8d174a25-da31-55a8-85b4-c06ffc9d5f8f
+      name: Sample Theatre
+      postal_address: Sample Theatre Address
+      city_code: BLR
+      city: Bengaluru
+      status: ACTIVE
+
+  CreateTheatreRequest:
+    type: object
+    properties:
+      name:
+        type: string
+        description: Name of the theatre
+      postal_address:
+        type: string
+        description: Postal address of the theatre
+      city_code:
+        type: string
+        description: City code of the theatre
+
+    required:
+      - name
+      - postal_address
+      - city_code
+    example:
+      name: Sample Theatre
+      postal_address: 100, MG Road
+      city_code: BLR
+
+  CreateTheatreResponse:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+        description: Unique identifier in a standard UUID format generated by API backend
+      status:
+        $ref: '#/definitions/TheatreStatusType'
+    required:
+      - id
+      - status
+    example:
+      id: 7d174a25-ba31-45a8-85b4-b06ffc9d5f8f
+      status: ACTIVE
+
+  UpdateTheatreRequest:
+    type: object
+    properties:
+      name:
+        type: string
+        description: Updated name of the theatre
+      postal_address:
+        type: string
+        description: Updated postal address of the theatre
+      city_code:
+        type: string
+        description: Updated city code of the theatre
+
+    example:
+      name: Sample Theatre
+      postal_address: 100, MG Road
+      city_code: BLR
+
+  TheatreShowsSummaryResponse:
+    type: object
+    properties:
+      page:
+        type: integer
+        description: page or position of the fetched shows
+      limit:
+        type: integer
+        description: number of shows fetched per this request
+      total_count:
+        type: integer
+        description: total number of shows in the movie
+      shows:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/TheatreShowType'
+        description: List of shows
+    required:
+      - total_count
+      - shows
+    example:
+      total_count: 8
+      shows:
+        - id: 7d174a25-ba31-45a8-85b4-b06ffc9d5f8f
+          show_timing: 2018-08-21T14:30
+          movie:
+            title: Sample Movie
+            storyline: This is a sample movie
+            genres:
+              - Drama
+              - Romantic
+            duration: 120
+            poster_url: www.samplemovie.com/poster
+            trailer_url: www.samplemovie.com/trailer
+            wiki_url: www.wikipedia.com/samplemovie
+            release_date: 2018-07-07
+            censor_board_rating: U
+            rating: 4.0
+            status: RELEASED
+          language: ENGLISH
+          unit_price: 200.00
+          total_seats: 125
+          available_seats: 75
+
+  TheatreShowType:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+        description: Unique identifier of the show in a standard UUID format
+      movie:
+        type: object
+        $ref: '#/definitions/MovieSummaryType'
+      show_timing:
+        $ref: '#/definitions/FullDateTimeType'
+        description: Show timing in yyyy-MM-ddTHH:MM format
+      language:
+        $ref: '#/definitions/LanguageType'
+      unit_price:
+        type: number
+        format: float
+        description: Unit price of the movie (for e.g. 200.00)
+      total_seats:
+        type: integer
+        description: Total number that this show can host
+      available_seats:
+        type: integer
+        description: Total available seats that this show still has
+
+  CreateTheatreShowRequest:
+    type: object
+    properties:
+      movie_id:
+        type: string
+        description: Movie mapped to this show
+      show_timing:
+        $ref: '#/definitions/FullDateTimeType'
+        description: Show timing in yyyy-MM-ddTHH:MM format
+      language:
+        $ref: '#/definitions/LanguageType'
+      unit_price:
+        type: number
+        format: float
+        description: Unit price of the movie (for e.g. 200.00)
+      total_seats:
+        type: integer
+        description: Total number that this show can host
+
+    required:
+      - movie_id
+      - show_timing
+      - language
+      - unit_price
+      - total_seats
+    example:
+      movie_id: 7d174a25-ba31-45a8-85b4-b06ffc9d5f8f
+      show_timing: 2018-08-01T14:30
+      language: ENGLISH
+      unit_price: 200.50
+      total_seats: 125
+
+  CreateTheatreShowResponse:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+        description: Unique identifier in a standard UUID format generated by API backend
+      status:
+        $ref: '#/definitions/TheatreShowStatusType'
+    required:
+      - id
+      - status
+    example:
+      id: 7d174a25-ba31-45a8-85b4-b06ffc9d5f8f
+      status: ACTIVE
+
+  UpdateTheatreShowRequest:
+    type: object
+    properties:
+      movie_id:
+        type: string
+        description: Updated movie mapped to this show
+      show_timing:
+        $ref: '#/definitions/FullDateTimeType'
+        description: Updated show timing in yyyy-MM-ddTHH:MM format
+      language:
+        $ref: '#/definitions/LanguageType'
+      unit_price:
+        type: number
+        format: float
+        description: Updated unit price of the movie (for e.g. 200.00)
+      total_seats:
+        type: integer
+        description: Updated total number that this show can host
+
+  MovieSummaryType:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+        description: Unique identifier of the movie in a standard UUID format
+      title:
+        type: string
+        description: Title of the movie
+      storyline:
+        type: string
+        description: Storyline of the movie
+      genres:
+        type: array
+        items:
+          type: string
+        description: Genres of the movie
+      duration:
+        type: integer
+        description: Duration (in minutes) of the movie
+      poster_url:
+        type: string
+        description: Poster URL of the movie
+      trailer_url:
+        type: string
+        description: Trailer URL of the movie
+      wiki_url:
+        type: string
+        description: Wiki URL of the movie
+      release_date:
+        description: Release date of the movie
+        $ref: '#/definitions/FullDateType'
+      censor_board_rating:
+        $ref: '#/definitions/CensorBoardRatingType'
+      rating:
+        type: number
+        format: float
+        description: Rating of the movie
+      status:
+        $ref: '#/definitions/MovieStatusType'
+      artists:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/ArtistType'
+        description: List of artists
+
+  ArtistType:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+        description: Unique identifier of the movie artists in a standard UUID format generated by API backend
+      first_name:
+        type: string
+        description: First name of an artist
+      last_name:
+        type: string
+        description: Last name of an artist
+      role_type:
+        type: string
+        description: Role of an artist
+        $ref: '#/definitions/ArtistRoleType'
+      profile_description:
+        type: string
+        description: Profile description of an artist
+      profile_url:
+        type: string
+        description: Profile URL of an artist
+      wiki_url:
+        type: string
+        description: Wikipedia URL of an artist
+
+  FullDateType:
+    type: string
+    format: full-date
+    description: Full date format (yyyy-MM-dd)
+
+  FullDateTimeType:
+    type: string
+    format: date-time
+    description: Full date-time format (yyyy-MM-ddTHH:MM)
+
+  TheatreStatusType:
+    type: string
+    enum: [ACTIVE,INACTIVE]
+    description: Status of the theatre
+
+  TheatreShowStatusType:
+    type: string
+    enum: [ACTIVE,INACTIVE]
+    description: Status of the show
+
+  LanguageType:
+    type: string
+    enum: [ENGLISH,HINDI,KANNADA,MARATHI,TELUGU,TAMIL,MALAYALAM,BENGALI,PUNJABI]
+    description: Language of the movie to be mapped to this show
+
+  MovieStatusType:
+    type: string
+    enum: [PUBLISHED,RELEASED,DELETED]
+    description: Status of the movie
+
+  ArtistRoleType:
+    type: string
+    enum: [DIRECTOR, PRODUCER, ACTOR, CINEMATOGRAPHER, MUSICIAN, STUNTMAN]
+    description: Status of the task
+
+  ArtistStatusType:
+    type: string
+    enum: [ACTIVE, INACTIVE]
+    description: Status of an artist
+
+  CensorBoardRatingType:
+    type: string
+    enum: [U,A,UA]
+    description: Censor board rating
+
+  ErrorResponse:
+    type: object
+    properties:
+      code:
+        type: string
+        description: Application specific standard error code
+      message:
+        type: string
+        description: Error message stating the reason
+      root_cause:
+        type: string
+        description: Root cause of the Error
+    required:
+      - code
+      - message
+    example:
+      code: THR-001
+      message: Theatre with identifier does not exist
